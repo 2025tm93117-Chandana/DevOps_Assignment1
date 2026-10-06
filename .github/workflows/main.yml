@@ -1,0 +1,29 @@
+name: Flask CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Compile and lint syntax
+        run: python -m compileall -q app.py tests
+      - name: Run unit tests
+        run: pytest -q
+      - name: Build Docker image
+        run: docker build --tag aceest-fitness:${{ github.sha }} .
+      - name: Run tests inside Docker image
+        run: docker run --rm --entrypoint python aceest-fitness:${{ github.sha }} -m pytest -q

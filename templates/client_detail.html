@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ client.name }} | ACEest Fitness{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('dashboard') }}">Dashboard</a><span>/</span><span>{{ client.name }}</span></div>
+<div class="page-heading client-heading"><div><div class="eyebrow">CLIENT PROFILE / {{ '%04d'|format(client.id) }}</div><h1>{{ client.name }}</h1><p class="muted">Joined the coaching roster · <span class="status status-{{ client.membership_status|lower }}">{{ client.membership_status }}</span></p></div><a class="button button-outline" href="{{ url_for('client_report', client_id=client.id) }}">↓ <span>Download report</span></a></div>
+<section class="metric-strip">
+  <div><span class="stat-label">CURRENT WEIGHT</span><strong>{{ client.weight ~ ' kg' if client.weight else '—' }}</strong></div>
+  <div><span class="stat-label">DAILY CALORIE TARGET</span><strong>{{ client.calories ~ ' kcal' if client.calories else '—' }}</strong></div>
+  <div><span class="stat-label">AVERAGE ADHERENCE</span><strong>{{ adherence ~ '%' if adherence is not none else '—' }}</strong></div>
+  <div><span class="stat-label">BMI</span><strong>{{ bmi if bmi is not none else '—' }}{% if bmi is not none %}<small> {{ bmi_category }}</small>{% endif %}</strong></div>
+</section>
+<div class="detail-grid">
+  <section class="section-block profile-block"><div class="section-heading"><div><div class="eyebrow">CLIENT RECORD</div><h2>Profile & goals</h2></div></div>
+    <form action="{{ url_for('update_client', client_id=client.id) }}" method="post" class="form-grid">
+      <label class="field field-full">Name<input name="name" value="{{ client.name }}" maxlength="120" required></label>
+      <label class="field">Age<input name="age" type="number" min="1" max="120" value="{{ client.age or '' }}"></label>
+      <label class="field">Height (cm)<input name="height" type="number" min="0.1" step="0.1" value="{{ client.height or '' }}"></label>
+      <label class="field">Weight (kg)<input name="weight" type="number" min="0.1" step="0.1" value="{{ client.weight or '' }}"></label>
+      <label class="field">Target weight (kg)<input name="target_weight" type="number" min="0.1" step="0.1" value="{{ client.target_weight or '' }}"></label>
+      <label class="field field-full">Program<select name="program"><option value="">Unassigned</option>{% for program in programs %}<option value="{{ program }}" {% if client.program == program %}selected{% endif %}>{{ program }}</option>{% endfor %}</select></label>
+      <label class="field">Target adherence (%)<input name="target_adherence" type="number" min="0" max="100" value="{{ client.target_adherence if client.target_adherence is not none else '' }}"></label>
+      <label class="field">Membership<select name="membership_status"><option {% if client.membership_status == 'Active' %}selected{% endif %}>Active</option><option {% if client.membership_status == 'Expired' %}selected{% endif %}>Expired</option><option {% if client.membership_status == 'Paused' %}selected{% endif %}>Paused</option></select></label>
+      <label class="field field-full">Membership end<input name="membership_end" type="date" value="{{ client.membership_end or '' }}"></label>
+      <button class="button button-primary field-full" type="submit">Save profile</button>
+    </form>
+    <form action="{{ url_for('generate_program', client_id=client.id) }}" method="post"><button class="button button-dark button-wide" type="submit">✳ Generate training program</button></form>
+    <form action="{{ url_for('generate_ai_program', client_id=client.id) }}" method="post" class="compact-form ai-program-form">
+      <label class="field">Experience level<select name="experience" required><option value="">Choose</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
+      <button class="button button-outline" type="submit">Build weekly plan</button>
+    </form>
+    {% if generated_program %}<div class="generated-plan"><div class="eyebrow">{{ generated_program.experience|upper }} PLAN</div><div class="table-wrap slim-table"><table><thead><tr><th>DAY</th><th>EXERCISE</th><th>SETS</th><th>REPS</th></tr></thead><tbody>{% for item in generated_program.workouts %}<tr><td>{{ item.day }}</td><td>{{ item.exercise }}</td><td>{{ item.sets }}</td><td>{{ item.reps }}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}
+  </section>
+  <div class="detail-stack">
+    <section class="section-block"><div class="section-heading"><div><div class="eyebrow">WEEKLY CHECK-IN</div><h2>Training adherence</h2></div></div>
+      <form action="{{ url_for('add_progress', client_id=client.id) }}" method="post" class="compact-form"><label class="field">Week<input name="week" placeholder="Week 40 - 2026"></label><label class="field">Adherence (%)<input name="adherence" type="number" min="0" max="100" required placeholder="0–100"></label><button class="button button-primary" type="submit">Log week</button></form>
+      {% if progress %}<div class="data-list">{% for row in progress %}<div class="data-row"><span>{{ row.week }}</span><strong>{{ row.adherence }}%</strong><div class="bar-track"><span style="width: {{ row.adherence }}%"></span></div></div>{% endfor %}</div>{% else %}<p class="muted empty-inline">No weekly check-ins yet.</p>{% endif %}
+    </section>
+    <section class="section-block"><div class="section-heading"><div><div class="eyebrow">BODY COMPOSITION</div><h2>Log measurements</h2></div></div>
+      <form action="{{ url_for('add_metrics', client_id=client.id) }}" method="post" class="compact-form metrics-form"><label class="field">Date<input name="date" type="date" value="{{ today }}" required></label><label class="field">Weight (kg)<input name="weight" type="number" min="0.1" step="0.1"></label><label class="field">Waist (cm)<input name="waist" type="number" min="0.1" step="0.1"></label><label class="field">Body fat (%)<input name="bodyfat" type="number" min="0" max="100" step="0.1"></label><button class="button button-outline" type="submit">Save metrics</button></form>
+      {% if metrics %}<div class="table-wrap slim-table"><table><thead><tr><th>DATE</th><th>WEIGHT</th><th>WAIST</th><th>BODY FAT</th></tr></thead><tbody>{% for metric in metrics %}<tr><td>{{ metric.date }}</td><td>{{ metric.weight ~ ' kg' if metric.weight else '—' }}</td><td>{{ metric.waist ~ ' cm' if metric.waist else '—' }}</td><td>{{ metric.bodyfat ~ '%' if metric.bodyfat is not none else '—' }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+    </section>
+  </div>
+</div>
+<section class="section-block workouts-block"><div class="section-heading"><div><div class="eyebrow">SESSION HISTORY</div><h2>Workouts & exercises</h2></div></div>
+  <form action="{{ url_for('add_workout', client_id=client.id) }}" method="post" class="workout-form">
+    <label class="field">Date<input name="date" type="date" value="{{ today }}" required></label><label class="field">Type<select name="workout_type" required><option value="">Choose</option>{% for kind in workout_types %}<option>{{ kind }}</option>{% endfor %}</select></label><label class="field">Duration (min)<input name="duration_min" type="number" min="1" value="60" required></label><label class="field field-wide">Notes<input name="notes" maxlength="500" placeholder="Session focus or notes"></label>
+    <label class="field">Exercise<input name="exercise_name" maxlength="120" placeholder="Optional"></label><label class="field">Sets<input name="sets" type="number" min="1" value="3"></label><label class="field">Reps<input name="reps" type="number" min="1" value="10"></label><label class="field">Load (kg)<input name="exercise_weight" type="number" min="0" step="0.5" value="0"></label><button class="button button-primary" type="submit">Log workout</button>
+  </form>
+  {% if workouts %}<div class="table-wrap"><table><thead><tr><th>DATE</th><th>TYPE</th><th>DURATION</th><th>SESSION NOTES / EXERCISES</th></tr></thead><tbody>{% for workout in workouts %}<tr><td>{{ workout.date }}</td><td>{{ workout.workout_type }}</td><td>{{ workout.duration_min }} min</td><td>{{ workout.notes or '' }}{% for exercise in workout_exercises[workout.id] %}<div class="exercise-line">{{ exercise.name }} · {{ exercise.sets }} × {{ exercise.reps }}{% if exercise.weight %} @ {{ exercise.weight }} kg{% endif %}</div>{% endfor %}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="muted empty-inline">Workout history will appear here.</p>{% endif %}
+</section>
+{% endblock %}

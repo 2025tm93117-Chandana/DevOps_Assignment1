@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sign in | ACEest Fitness{% endblock %}
+{% block content %}
+<section class="login-layout">
+  <div class="login-intro"><div class="eyebrow">MEMBER OPERATIONS</div><h1>Build stronger<br>habits, together.</h1><p>One clear view of your coaching roster, training logs, and client progress.</p><div class="login-rule"><span></span><span></span><span></span></div></div>
+  <form class="login-panel" method="post">
+    <div class="eyebrow">COACH ACCESS</div><h2>Welcome back</h2><p class="muted">Sign in to manage your fitness programs.</p>
+    <label for="username">Username</label><input id="username" name="username" autocomplete="username" required autofocus>
+    <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="button button-primary button-wide" type="submit">Sign in <span aria-hidden="true">→</span></button>
+    <div class="demo-note">Demo account <strong>admin / admin</strong></div>
+  </form>
+</section>
+{% endblock %}
