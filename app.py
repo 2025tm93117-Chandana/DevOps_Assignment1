@@ -469,7 +469,8 @@ def _build_pdf(client):
         ("Membership", client["membership_status"]), ("Membership end", client["membership_end"]),
     ]
     for label, value in fields:
-        pdf.cell(0, 9, f"{label}: {value if value is not None else 'N/A'}", new_x="LMARGIN", new_y="NEXT")
+        report_line = f"{label}: {value if value is not None else 'N/A'}".replace("\u2013", "-")
+        pdf.cell(0, 9, report_line, new_x="LMARGIN", new_y="NEXT")
     return bytes(pdf.output())
 
 

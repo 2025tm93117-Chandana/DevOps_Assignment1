@@ -47,7 +47,7 @@ docker run --rm -p 5000:5000 -v aceest-data:/app/instance `
 
 ## Code version port
 
-The scripts in `Code_Versions` are the application behavior reference; Tkinter windows and widgets are replaced with Flask routes and HTML forms. The client goals, calorie factors, adherence, progress analytics, body metrics, workout history, and BMI logic follow the `3.0.1` increment. The experience-level weekly exercise generator follows `3.1.2`, including its exercise pools, focus selection, day counts, and sets/reps ranges. The login, randomized training-template generator, membership status, workout entry, and PDF report flow follow `3.2.4`. Program names and calorie factors match the reference data.
+The incremental scripts in `Code_Versions/` are kept in this repository as application behavior references; Tkinter windows and widgets are replaced with Flask routes and HTML forms. Every push and pull request runs the workflow, including changes to any of these version files, and CI checks their Python syntax. The client goals, calorie factors, adherence, progress analytics, body metrics, workout history, and BMI logic follow the `3.0.1` increment. The experience-level weekly exercise generator follows `3.1.2`, including its exercise pools, focus selection, day counts, and sets/reps ranges. The login, randomized training-template generator, membership status, workout entry, and PDF report flow follow `3.2.4`. Program names and calorie factors match the reference data.
 
 ## CI/CD overview
 

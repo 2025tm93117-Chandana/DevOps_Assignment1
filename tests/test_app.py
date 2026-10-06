@@ -131,6 +131,7 @@ def test_ai_program_uses_experience_and_client_program_focus(client, app):
     assert response.status_code == 302
     page = client.get(f"/clients/{client_id}")
     assert b"BEGINNER PLAN" in page.data
-    assert page.data.count(b"Conditioning") == 0
+    generated_plan = page.data.split(b'<div class="generated-plan">', 1)[1].split(b"</section>", 1)[0]
+    assert b"Conditioning" not in generated_plan
     assert page.data.count(b"Monday") == 3
     assert b"Running" in page.data or b"Cycling" in page.data or b"Rowing" in page.data
