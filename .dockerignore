@@ -1,6 +1,9 @@
 .git
 .github
 .pytest_cache
+.coverage
+.vscode
+Code_Versions
 __pycache__
 *.py[cod]
 instance
