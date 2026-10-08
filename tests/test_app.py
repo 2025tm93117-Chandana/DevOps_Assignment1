@@ -409,3 +409,92 @@ def test_client_detail_shows_delete_button(client, app):
     add_client(client)
     page = client.get(f"/clients/{get_client_id(app)}")
     assert b"Delete client" in page.data
+
+def roster_names(response):
+    import re
+
+    return re.findall(rb'aria-label="View ([^"]+)"', response.data)
+
+
+def test_dashboard_search_filters_by_name_case_insensitively(client):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Jordan Lee")
+    response = client.get("/?q=taylor")
+    assert roster_names(response) == [b"Taylor Reed"]
+
+
+def test_dashboard_search_matches_partial_names(client):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Tara Stone")
+    add_client(client, "Jordan Lee")
+    response = client.get("/?q=ta")
+    assert roster_names(response) == [b"Tara Stone", b"Taylor Reed"]
+
+
+def test_dashboard_search_without_match_shows_empty_message(client):
+    sign_in(client)
+    add_client(client)
+    response = client.get("/?q=nobody")
+    assert roster_names(response) == []
+    assert b"No matching clients" in response.data
+
+
+def test_dashboard_search_treats_wildcards_literally(client):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    assert roster_names(client.get("/?q=%25")) == []
+    assert roster_names(client.get("/?q=_")) == []
+
+
+def test_dashboard_status_filter(client, app):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Jordan Lee")
+    client.post(f"/clients/{get_client_id(app, 'Jordan Lee')}/update", data={
+        "name": "Jordan Lee", "membership_status": "Paused",
+    })
+    assert roster_names(client.get("/?status=Paused")) == [b"Jordan Lee"]
+    assert roster_names(client.get("/?status=Active")) == [b"Taylor Reed"]
+    assert roster_names(client.get("/?status=Expired")) == []
+
+
+def test_dashboard_search_and_status_combine(client, app):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Tara Stone")
+    client.post(f"/clients/{get_client_id(app, 'Tara Stone')}/update", data={
+        "name": "Tara Stone", "membership_status": "Paused",
+    })
+    assert roster_names(client.get("/?q=ta&status=Paused")) == [b"Tara Stone"]
+
+
+def test_dashboard_invalid_status_is_ignored(client):
+    sign_in(client)
+    add_client(client)
+    response = client.get("/?status=Bogus")
+    assert roster_names(response) == [b"Taylor Reed"]
+
+
+def test_dashboard_search_injection_attempt_is_harmless(client):
+    sign_in(client)
+    add_client(client)
+    response = client.get("/?q=' OR 1=1 --")
+    assert response.status_code == 200
+    assert roster_names(response) == []
+
+
+def test_dashboard_summary_ignores_filters(client):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Jordan Lee")
+    response = client.get("/?q=taylor")
+    assert b"<strong>2</strong>" in response.data
+
+
+def test_dashboard_keeps_search_term_in_form(client):
+    sign_in(client)
+    response = client.get("/?q=taylor&status=Paused")
+    assert b'value="taylor"' in response.data
+    assert b"Clear" in response.data
