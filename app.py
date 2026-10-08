@@ -457,9 +457,9 @@ def _build_pdf(client):
 
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
+    pdf.set_font("Helvetica", "B", 16)
     pdf.cell(0, 12, f"ACEest Client Report - {client['name']}", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Arial", size=11)
+    pdf.set_font("Helvetica", size=11)
     fields = [
         ("ID", client["id"]),
         ("Age", client["age"]), ("Height (cm)", client["height"]),
