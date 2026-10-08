@@ -24,6 +24,7 @@
       <button class="button button-primary field-full" type="submit">Save profile</button>
     </form>
     <form action="{{ url_for('generate_program', client_id=client.id) }}" method="post"><button class="button button-dark button-wide" type="submit">✳ Generate training program</button></form>
+    <form action="{{ url_for('delete_client', client_id=client.id) }}" method="post" onsubmit="return confirm('Delete this client and all their records?');"><button class="button button-outline button-wide" type="submit">Delete client</button></form>
     <form action="{{ url_for('generate_ai_program', client_id=client.id) }}" method="post" class="compact-form ai-program-form">
       <label class="field">Experience level<select name="experience" required><option value="">Choose</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
       <button class="button button-outline" type="submit">Build weekly plan</button>
