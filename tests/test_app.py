@@ -498,3 +498,41 @@ def test_dashboard_keeps_search_term_in_form(client):
     response = client.get("/?q=taylor&status=Paused")
     assert b'value="taylor"' in response.data
     assert b"Clear" in response.data
+
+def test_health_endpoint_reports_ok_without_login(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.is_json
+    body = response.get_json()
+    assert body["status"] == "ok"
+    assert body["database"] == "ok"
+
+
+def test_health_endpoint_reports_app_version(client):
+    from app import APP_VERSION
+
+    assert client.get("/health").get_json()["version"] == APP_VERSION
+
+
+def test_health_endpoint_rejects_non_get_methods(client):
+    assert client.post("/health").status_code == 405
+
+
+def test_health_endpoint_returns_503_when_database_fails(client, monkeypatch):
+    import sqlite3
+
+    def broken_connect(*args, **kwargs):
+        raise sqlite3.OperationalError("database unavailable")
+
+    monkeypatch.setattr("app.sqlite3.connect", broken_connect)
+    response = client.get("/health")
+    assert response.status_code == 503
+    body = response.get_json()
+    assert body["status"] == "unhealthy"
+    assert body["database"] == "unavailable"
+
+
+def test_health_endpoint_does_not_create_session(client):
+    response = client.get("/health")
+    assert "Set-Cookie" not in response.headers
+    assert client.get("/").status_code == 302
