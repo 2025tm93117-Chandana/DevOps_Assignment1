@@ -349,3 +349,63 @@ def test_generate_weekly_plan_focus_follows_program():
     assert {item["exercise"] for item in muscle} <= set(EXERCISES_BY_FOCUS["Hypertrophy"])
     default = generate_weekly_plan(None, "beginner")
     assert {item["exercise"] for item in default} <= set(EXERCISES_BY_FOCUS["Full Body"])
+
+
+def test_delete_client_removes_client_and_related_records(client, app):
+    import sqlite3
+
+    sign_in(client)
+    add_client(client)
+    client_id = get_client_id(app)
+    client.post(f"/clients/{client_id}/progress", data={"adherence": "80"})
+    client.post(f"/clients/{client_id}/workouts", data={
+        "date": "2026-10-06", "workout_type": "Strength", "duration_min": "45",
+        "exercise_name": "Squat", "sets": "3", "reps": "5",
+    })
+    client.post(f"/clients/{client_id}/metrics", data={"date": "2026-10-06", "weight": "70"})
+
+    response = client.post(f"/clients/{client_id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Client Taylor Reed deleted" in response.data
+    assert client.get(f"/clients/{client_id}").status_code == 404
+
+    db = sqlite3.connect(app.config["DATABASE"])
+    try:
+        for table in ("progress", "workouts", "metrics"):
+            assert db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
+        assert db.execute("SELECT COUNT(*) FROM exercises").fetchone()[0] == 0
+    finally:
+        db.close()
+
+
+def test_delete_client_keeps_other_clients(client, app):
+    sign_in(client)
+    add_client(client, "Taylor Reed")
+    add_client(client, "Jordan Lee")
+    client.post(f"/clients/{get_client_id(app, 'Taylor Reed')}/delete")
+    page = client.get("/")
+    assert b'aria-label="View Taylor Reed"' not in page.data
+    assert b'aria-label="View Jordan Lee"' in page.data
+
+
+def test_delete_unknown_client_returns_404(client):
+    sign_in(client)
+    assert client.post("/clients/9999/delete").status_code == 404
+
+
+def test_delete_client_requires_login(client):
+    response = client.post("/clients/1/delete")
+    assert response.status_code == 302
+    assert "/login" in response.location
+
+
+def test_delete_client_rejects_get(client):
+    sign_in(client)
+    assert client.get("/clients/1/delete").status_code == 405
+
+
+def test_client_detail_shows_delete_button(client, app):
+    sign_in(client)
+    add_client(client)
+    page = client.get(f"/clients/{get_client_id(app)}")
+    assert b"Delete client" in page.data

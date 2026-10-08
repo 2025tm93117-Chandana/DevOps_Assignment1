@@ -337,6 +337,16 @@ def create_app(test_config=None):
         flash("Client details updated.", "success")
         return redirect(url_for("client_detail", client_id=client_id))
 
+    @app.post("/clients/<int:client_id>/delete")
+    @login_required
+    def delete_client(client_id):
+        client = get_client(client_id)
+        db = get_db()
+        db.execute("DELETE FROM clients WHERE id = ?", (client_id,))
+        db.commit()
+        flash(f"Client {client['name']} deleted.", "success")
+        return redirect(url_for("dashboard"))
+
     @app.post("/clients/<int:client_id>/program")
     @login_required
     def generate_program(client_id):
