@@ -36,6 +36,7 @@ EXPERIENCE_SETTINGS = {
     "advanced": ((4, 5), (6, 15), 5),
 }
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+MEMBERSHIP_STATUSES = ["Active", "Expired", "Paused"]
 
 
 def generate_weekly_plan(program_name, experience):
@@ -201,7 +202,20 @@ def create_app(test_config=None):
     @login_required
     def dashboard():
         db = get_db()
-        clients = db.execute("SELECT * FROM clients ORDER BY name").fetchall()
+        search = request.args.get("q", "").strip()
+        status = request.args.get("status", "").strip()
+        if status not in MEMBERSHIP_STATUSES:
+            status = ""
+        conditions, params = [], []
+        if search:
+            escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            conditions.append("name LIKE ? ESCAPE '\\'")
+            params.append(f"%{escaped}%")
+        if status:
+            conditions.append("membership_status = ?")
+            params.append(status)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        clients = db.execute(f"SELECT * FROM clients {where} ORDER BY name", params).fetchall()
         summary = db.execute(
             "SELECT COUNT(*) AS total, SUM(membership_status = 'Active') AS active FROM clients"
         ).fetchone()
@@ -212,7 +226,8 @@ def create_app(test_config=None):
         return render_template(
             "dashboard.html", clients=clients, summary=summary,
             recent_workouts=recent_workouts, programs=PROGRAMS,
-            today=date.today().isoformat(),
+            today=date.today().isoformat(), search=search, status=status,
+            statuses=MEMBERSHIP_STATUSES,
         )
 
     @app.post("/clients")

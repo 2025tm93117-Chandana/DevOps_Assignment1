@@ -10,9 +10,15 @@
 <section class="dashboard-grid">
   <div class="section-block roster-block">
     <div class="section-heading"><div><div class="eyebrow">YOUR PEOPLE</div><h2>Client roster</h2></div><span class="count-label">{{ clients|length }} CLIENTS</span></div>
+    <form action="{{ url_for('dashboard') }}" method="get" class="compact-form client-search">
+      <label class="field">Search<input name="q" value="{{ search }}" maxlength="120" placeholder="Client name"></label>
+      <label class="field">Membership<select name="status"><option value="">All</option>{% for option in statuses %}<option value="{{ option }}" {% if status == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
+      <button class="button button-outline" type="submit">Filter</button>
+      {% if search or status %}<a class="button button-quiet" href="{{ url_for('dashboard') }}">Clear</a>{% endif %}
+    </form>
     {% if clients %}<div class="table-wrap"><table><thead><tr><th>CLIENT</th><th>PROGRAM</th><th>MEMBERSHIP</th><th>WEIGHT</th><th></th></tr></thead><tbody>
       {% for client in clients %}<tr><td><a class="client-link" href="{{ url_for('client_detail', client_id=client.id) }}">{{ client.name }}</a><span class="sub-cell">{{ client.age if client.age else 'Age not set' }}</span></td><td>{{ client.program or 'Unassigned' }}</td><td><span class="status status-{{ client.membership_status|lower }}">{{ client.membership_status }}</span></td><td>{{ client.weight ~ ' kg' if client.weight else '—' }}</td><td><a class="arrow-link" href="{{ url_for('client_detail', client_id=client.id) }}" aria-label="View {{ client.name }}">↗</a></td></tr>{% endfor %}
-    </tbody></table></div>{% else %}<div class="empty-state"><span class="empty-icon">01</span><div><strong>Your roster starts here</strong><p>Add your first client using the form.</p></div></div>{% endif %}
+    </tbody></table></div>{% else %}<div class="empty-state"><span class="empty-icon">01</span><div>{% if search or status %}<strong>No matching clients</strong><p>Try a different name or membership filter.</p>{% else %}<strong>Your roster starts here</strong><p>Add your first client using the form.</p>{% endif %}</div></div>{% endif %}
   </div>
   <aside class="section-block add-block">
     <div class="section-heading"><div><div class="eyebrow">GET STARTED</div><h2>New client</h2></div><span class="plus-mark">+</span></div>
