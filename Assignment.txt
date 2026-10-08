@@ -1,0 +1,35 @@
+Introduction to DEVOPS (Merged - CSIZG514/SEZG514)(S1-26)
+Assignment - 1
+Assignment Overview: Implementing Automated CI/CD Pipelines for ACEest Fitness & Gym
+Objective - This assignment is designed to provide students with comprehensive, hands-on experience in modern DevOps methodologies. By executing this project, students will attain professional proficiency in Version Control (Git/GitHub), Containerization (Docker), and the orchestration of Continuous Integration and Continuous Delivery (CI/CD) pipelines using GitHub Actions and Jenkins.
+Problem Statement- You have been appointed as a Junior DevOps Engineer for ACEest Fitness & Gym, a rapidly scaling startup. Your mission is to architect and implement a robust, automated deployment workflow that guarantees code integrity, environmental consistency, and rapid delivery.
+Your solution must transition the application through a rigorous lifecycle—from local development to an automated Jenkins BUILD environment.
+Core Assignment Phases
+1.	Application Development & Modularization Develop a foundational Flask web application tailored for fitness and gym management. You will be provided with a baseline Python script to initialize the core logic and service endpoints.
+2.	Version Control System (VCS) Strategy Initialize a local Git repository and synchronize it with a remote GitHub counterpart. You are expected to follow industry standards for versioning, including descriptive commit messages and branch management to track features, bug fixes, and infrastructure updates.
+3.	Unit Testing & Validation Framework Integrate the Pytest framework to develop a comprehensive suite of unit tests. These tests must validate the internal logic of the Flask application, ensuring that all components perform according to specification before they reach the build stage.
+4.	Containerization with Docker Encapsulate the Flask application, along with its environment and dependencies, into a portable Docker Image. This ensures "write once, run anywhere" consistency, eliminating the "it works on my machine" syndrome during the transition from testing to production.
+5.	The Jenkins BUILD & Quality Gate Integrate a Jenkins server to handle the primary BUILD phase. You must configure a Jenkins project that pulls the latest code from GitHub and performs a clean build of the environment. This serves as a secondary validation layer to ensure the code compiles and integrates correctly in a controlled build environment.
+6.	Automated CI/CD Pipeline via GitHub Actions Design a fully automated pipeline using GitHub Actions (.github/workflows/main.yml). The pipeline must be triggered by every push or pull_request, executing the following critical stages:
+•	Build & Lint: Compile the application and check for syntax errors.
+•	Docker Image Assembly: Successfully build the Docker container.
+•	Automated Testing: Execute the Pytest suite inside the containerized environment to confirm stability.
+Required Deliverables
+Students must submit a link to a publicly accessible GitHub Repository containing:
+•	Source Code: All Flask application files (app.py, requirements.txt).
+•	Test Suite: All Pytest script files.
+•	Infrastructure as Code: A functional Dockerfile and the GitHub Actions YAML configuration.
+•	Documentation: A professional README.md detailing:
+•	Local setup and execution instructions.
+•	Steps to run tests manually.
+•	A high-level overview of the Jenkins and GitHub Actions integration logic.
+Evaluation Criteria
+Submissions will be assessed based on the following professional benchmarks:
+•	Application Integrity: Does the Flask application function as specified.
+•	VCS Maturity: Are Git commits meaningful and logically structured.
+•	Testing Coverage: Do the Pytest cases effectively cover core functionalities.
+•	Docker Efficiency: Is the Dockerfile optimized for size and security.
+•	Pipeline Reliability: * Does the Jenkins BUILD trigger and complete without errors.
+•	Does the GitHub Actions workflow successfully pass the Build and Test stages on every push.
+•	Documentation Clarity: Is the README.md professional and easy to follow for other engineers.
+
