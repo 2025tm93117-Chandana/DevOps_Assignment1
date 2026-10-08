@@ -25,6 +25,6 @@ USER appuser
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://localhost:%s/login' % os.environ['PORT'])" || exit 1
+    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://localhost:%s/health' % os.environ['PORT'])" || exit 1
 
 CMD ["python", "app.py"]

@@ -5,7 +5,7 @@ from datetime import date, datetime
 from io import BytesIO
 from pathlib import Path
 
-from flask import Flask, abort, flash, g, redirect, render_template, request, send_file, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -37,6 +37,7 @@ EXPERIENCE_SETTINGS = {
 }
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 MEMBERSHIP_STATUSES = ["Active", "Expired", "Paused"]
+APP_VERSION = "4.0.0"
 
 
 def generate_weekly_plan(program_name, experience):
@@ -192,6 +193,14 @@ def create_app(test_config=None):
                 return redirect(url_for("dashboard"))
             flash("The username or password was not recognized.", "error")
         return render_template("login.html")
+
+    @app.get("/health")
+    def health():
+        try:
+            get_db().execute("SELECT 1").fetchone()
+        except sqlite3.Error:
+            return jsonify(status="unhealthy", version=APP_VERSION, database="unavailable"), 503
+        return jsonify(status="ok", version=APP_VERSION, database="ok")
 
     @app.post("/logout")
     def logout():
